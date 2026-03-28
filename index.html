@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GULZADA | LUXURY OS</title>
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --premium-bg: #0a0e17;
+            --glass: rgba(255, 255, 255, 0.05);
+            --st-free: #00ff88;
+            --st-booked: #ff8800;
+            --st-vip: #bd00ff;
+        }
+
+        body {
+            margin: 0; font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--premium-bg); color: white;
+            background-image: radial-gradient(circle at top right, #1a2a44, #0a0e17);
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* ТВОЙ НОВЫЙ HEADER */
+        .dashboard-header {
+            padding: 30px 20px; text-align: left;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+        }
+        .user-badge { font-size: 0.6rem; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; font-weight: 800; }
+        .welcome-text { font-size: 1.5rem; font-weight: 200; margin: 5px 0; }
+
+        /* ЖИВАЯ СТАТИСТИКА */
+        .stat-bar {
+            display: flex; gap: 10px; padding: 0 20px; margin-bottom: 20px;
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .stat-card {
+            background: var(--glass); padding: 15px; border-radius: 20px;
+            min-width: 100px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+        .stat-label { font-size: 0.6rem; opacity: 0.6; text-transform: uppercase; }
+
+        /* ГЛАВНОЕ МЕНЮ (NAV) */
+        .main-nav { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .nav-item {
+            background: var(--glass); height: 120px; border-radius: 25px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border: 1px solid rgba(255,255,255,0.15); transition: 0.3s;
+            text-decoration: none; color: white; cursor: pointer;
+        }
+        .nav-item:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 10px; }
+        .nav-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; }
+
+        /* ЗОНЫ И СЕТКА */
+        .view-section { display: none; padding: 20px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .cabana-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .smart-card {
+            background: var(--glass); border-radius: 22px; padding: 15px 5px;
+            border: 1px solid rgba(255,255,255,0.1); text-align: center;
+            position: relative; overflow: hidden; transition: 0.3s;
+        }
+        .smart-card.active-st { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        .card-id { font-size: 0.6rem; opacity: 0.5; }
+        .card-main { font-size: 1.3rem; font-weight: 800; margin: 5px 0; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        /* ВЕСЕЛАЯ ДОСКА (VIBE BOARD) */
+        .vibe-board {
+            margin: 20px; background: linear-gradient(45deg, #00f2ff22, #bd00ff22);
+            border-radius: 25px; padding: 20px; border: 1px dashed rgba(255,255,255,0.3);
+        }
+        .joke-text { font-style: italic; font-size: 0.9rem; opacity: 0.9; }
+
+        /* MODAL (FUTURE STYLE) */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px); z-index: 10000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #161b22; width: 90%; max-width: 400px; padding: 30px;
+            border-radius: 35px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .input-futuristic {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px; border-radius: 15px; color: white; margin-bottom: 15px; box-sizing: border-box;
+        }
+        .btn-action {
+            width: 100%; padding: 15px; border-radius: 15px; border: none;
+            background: var(--accent); color: #000; font-weight: 800; text-transform: uppercase;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="home-view">
+        <header class="dashboard-header">
+            <div class="user-badge">System Administrator</div>
+            <h1 class="welcome-text">Gulzada's <b>HQ</b></h1>
+        </header>
+
+        <div class="stat-bar">
+            <div class="stat-card"><span class="stat-val" id="count-free">0</span><span class="stat-label">Free</span></div>
+            <div class="stat-card"><span class="stat-val" id="count-booked">0</span><span class="stat-label">Booked</span></div>
+            <div class="stat-card"><span class="stat-val" style="color:var(--st-vip)">VIP</span><span class="stat-label">Status</span></div>
+        </div>
+
+        <nav class="main-nav">
+            <div class="nav-item" onclick="openZoneView('Escape', 21)">
+                <span class="nav-icon">🏝️</span><span class="nav-label">ESCAPE</span>
+            </div>
+            <div class="nav-item" onclick="openZoneView('Lotus', 8)">
+                <span class="nav-icon">🪷</span><span class="nav-label">LOTUS</span>
+            </div>
+            <div class="nav-item" onclick="openZoneView('Joy Stone', 18)">
+                <span class="nav-icon">💎</span><span class="nav-label">JOY STONE</span>
+            </div>
+            <div class="nav-item" onclick="showModal('vibe-modal')">
+                <span class="nav-icon">🥳</span><span class="nav-label">VIBE BOARD</span>
+            </div>
+        </nav>
+
+        <div class="vibe-board">
+            <h4 style="margin-top:0; font-size:0.7rem; letter-spacing:2px; opacity:0.6;">DAILY MOTIVATION</h4>
+            <p class="joke-text" id="joke-display">"Coffee in hand, confidence in soul. Let's make Lujo great today!"</p>
+        </div>
+    </div>
+
+    <div id="zone-view" class="view-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <button onclick="goHome()" style="background:none; border:none; color:var(--accent); font-size:1.2rem;">← EXIT</button>
+            <h2 id="zone-title" style="margin:0; letter-spacing:5px; font-weight:200;"></h2>
+            <div style="width:40px;"></div>
+        </div>
+        <div id="cabana-grid" class="cabana-grid"></div>
+    </div>
+
+    <div id="vibe-modal" class="modal" onclick="closeModal('vibe-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 style="margin-top:0;">Vibe Control</h2>
+            <input type="text" id="joke-input" class="input-futuristic" placeholder="Write a joke or meme...">
+            <button class="btn-action" onclick="updateJoke()">Update Vibe</button>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="edit-header" style="margin-top:0; font-weight:200;"></h2>
+            <input type="text" id="in-room" class="input-futuristic" placeholder="Room Number">
+            <input type="text" id="in-guest" class="input-futuristic" placeholder="Guest Name">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <button onclick="setSt('free')" id="b-free" style="color:var(--st-free); background:none; border:1px solid; padding:10px; border-radius:10px;">Free</button>
+                <button onclick="setSt('booked')" id="b-booked" style="color:var(--st-booked); background:none; border:1px solid; padding:10px; border-radius:10px;">Booked</button>
+                <button onclick="setSt('vip')" id="b-vip" style="color:var(--st-vip); background:none; border:1px solid; padding:10px; border-radius:10px;">VIP</button>
+            </div>
+            <button class="btn-action" onclick="saveData()">Save Config</button>
+            <button onclick="closeModal('edit-modal')" style="background:none; border:none; color:white; width:100%; margin-top:15px; opacity:0.5;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let storage = JSON.parse(localStorage.getItem('lujo_os_v1')) || {};
+        let currentZone = ''; let currentCount = 0; let currentId = null; let tempStatus = 'free';
+
+        function goHome() { 
+            document.getElementById('home-view').style.display = 'block';
+            document.getElementById('zone-view').style.display = 'none';
+            updateStats();
+        }
+
+        function openZoneView(name, count) {
+            currentZone = name; currentCount = count;
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('zone-view').style.display = 'block';
+            document.getElementById('zone-title').innerText = name;
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('cabana-grid');
+            grid.innerHTML = '';
+            for(let i=1; i<=currentCount; i++) {
+                let id = currentZone + i;
+                let data = storage[id] || { room: '...', status: 'free' };
+                let color = data.status === 'free' ? 'var(--st-free)' : (data.status === 'booked' ? 'var(--st-booked)' : 'var(--st-vip)');
+                grid.innerHTML += `
+                    <div class="smart-card ${data.status !== 'free' ? 'active-st' : ''}" onclick="openEdit('${id}', ${i})">
+                        <div class="card-id">CABANA ${i}</div>
+                        <div class="card-main" style="color:${color}">${data.room}</div>
+                        <div style="font-size:0.5rem; opacity:0.6;"><span class="status-dot" style="background:${color}"></span>${data.status.toUpperCase()}</div>
+                    </div>`;
+            }
+        }
+
+        function openEdit(id, num) {
+            currentId = id;
+            let data = storage[id] || { room: '', guest: '', status: 'free' };
+            document.getElementById('edit-header').innerText = `Config ${currentZone} #${num}`;
+            document.getElementById('in-room').value = data.room === '...' ? '' : data.room;
+            document.getElementById('in-guest').value = data.guest || '';
+            setSt(data.status);
+            showModal('edit-modal');
+        }
+
+        function setSt(s) {
+            tempStatus = s;
+            ['free', 'booked', 'vip'].forEach(id => {
+                document.getElementById('b-'+id).style.background = (id === s ? 'rgba(255,255,255,0.1)' : 'none');
+            });
+        }
+
+        function saveData() {
+            storage[currentId] = {
+                room: document.getElementById('in-room').value || '...',
+                guest: document.getElementById('in-guest').value,
+                status: tempStatus
+            };
+            localStorage.setItem('lujo_os_v1', JSON.stringify(storage));
+            closeModal('edit-modal');
+            renderGrid();
+        }
+
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function updateJoke() {
+            const val = document.getElementById('joke-input').value;
+            if(val) {
+                document.getElementById('joke-display').innerText = `"${val}"`;
+                localStorage.setItem('lujo_vibe', val);
+                closeModal('vibe-modal');
+            }
+        }
+
+        function updateStats() {
+            let free = 0, booked = 0;
+            Object.values(storage).forEach(item => {
+                if(item.status === 'free') free++;
+                else booked++;
+            });
+            document.getElementById('count-free').innerText = free;
+            document.getElementById('count-booked').innerText = booked;
+        }
+
+        // Init
+        document.getElementById('joke-display').innerText = `"${localStorage.getItem('lujo_vibe') || "Let's make Lujo great today!"}"`;
+        updateStats();
+    </script>
+</body>
+</html>

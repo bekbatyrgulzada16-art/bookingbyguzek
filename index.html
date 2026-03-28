@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabana Control by Guzek</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #FCE8F1; /* Barbie soft pink */
+            color: #A38D9A; /* Text smoky rose */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 26px;
+            font-weight: 500;
+        }
+
+        .button {
+            background: #F8D7E8; /* pastel pink */
+            padding: 18px;
+            margin: 12px 0;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 18px;
+            color: #5F4E55; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .button:hover {
+            background: #F3CDE2;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .info-block {
+            margin-top: 30px;
+            background: #F8D7E8;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .mood-title {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 20px;
+            color: #7C6A75;
+        }
+
+        .mood-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 14px;
+            font-size: 34px;
+        }
+
+        .mood-row span:hover {
+            transform: scale(1.2);
+            transition: 0.15s;
+            cursor: pointer;
+        }
+
+        .status-colors {
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        .free { background: #CFF7D8; }          /* pastel green */
+        .booked { background: #F1B7C4; }        /* muted red-rose */
+        .comp { background: #F9E9B4; }          /* vanilla pastel */
+        .event { background: #D7E3FF; }         /* pastel blue */
+    </style>
+</head>
+
+<body>
+
+    <h1>CABANA CONTROL BY GUZEK</h1>
+
+    <div class="button">ESCAPE — 21</div>
+    <div class="button">LOTUS — 8</div>
+    <div class="button">JOYSTONE — 18</div>
+    <div class="button">INFORMATION</div>
+
+    <div class="mood-title">Today's Mood</div>
+
+    <div class="mood-row">
+        <span>😀</span>
+        <span>🙂</span>
+        <span>😴</span>
+        <span>😡</span>
+        <span>😭</span>
+    </div>
+
+    <div class="info-block">
+        <h3 style="margin-top:0;">Color Status Guide</h3>
+        <div class="status-colors">
+            <div><span class="color-box free"></span>Free</div>
+            <div><span class="color-box booked"></span>Booked</div>
+            <div><span class="color-box comp"></span>Complimentary</div>
+            <div><span class="color-box event"></span>Event</div>
+        </div>
+    </div>
+
+</body>
+</html>

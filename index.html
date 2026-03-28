@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CABANA BOOKING BY GULZADA</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root {
+            --sand: #F6F2EA; --white: #FFFFFF; --olive: #7D8B6A;
+            --st-booked: #FF4B2B; --st-villas: #A020F0; --st-comp: #FFD700;
+        }
+        body { margin: 0; font-family: -apple-system, sans-serif; background: var(--sand); color: #333; padding-bottom: 30px; }
+        .header { padding: 30px 20px; text-align: center; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Блокнот */
+        .daily-section { padding: 0 20px 20px; }
+        .daily-card { background: var(--white); padding: 20px; border-radius: 20px; border: 2px solid var(--olive); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        .nav-area { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+        .btn-luxe { background: var(--olive); color: white; padding: 22px; border-radius: 40px; border: none; font-weight: 900; display: flex; justify-content: space-between; font-size: 1rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+        .card { border-radius: 18px; padding: 12px 5px; text-align: center; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        
+        /* Цвета статусов */
+        .st-booked { background: var(--st-booked) !important; color: white; }
+        .st-villas { background: var(--st-villas) !important; color: white; }
+        .st-comp { background: var(--st-comp) !important; color: black; }
+        .st-free { background: white; color: #333; }
+
+        .card small { font-size: 0.65rem; opacity: 0.8; font-weight: 700; }
+        .card b { font-size: 1rem; display: block; margin: 2px 0; }
+        .info-line { font-size: 0.75rem; font-weight: 600; line-height: 1.2; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 5000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 30px; box-sizing: border-box; }
+        .input-luxe { width: 100%; border: 1px solid #ddd; padding: 14px; margin-bottom: 10px; border-radius: 12px; font-weight: 700; font-size: 1rem; box-sizing: border-box; }
+        .status-box { display: flex; gap: 8px; margin: 15px 0; }
+        .s-dot { flex: 1; height: 45px; border-radius: 12px; border: 2px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div id="home">
+        <div class="header"><h1>CABANA BOOKING<br>BY GULZADA</h1></div>
+        <div class="daily-section">
+            <div class="daily-card" onclick="editDaily()">
+                <small style="color:var(--olive); font-weight:900;">DAILY NOTES 📝</small>
+                <div id="daily-val" style="font-weight: 800; margin-top:5px;">Loading...</div>
+            </div>
+        </div>
+        <div class="nav-area">
+            <button class="btn-luxe" onclick="render('Escape', 21)">ESCAPE AREA <span>🌊</span></button>
+            <button class="btn-luxe" onclick="render('Lotus', 8)">LOTUS PIER <span>🪷</span></button>
+            <button class="btn-luxe" onclick="render('JoyStone', 18)">JOYSTONE ZONE <span>💎</span></button>
+        </div>
+    </div>
+
+    <div id="zone" style="display:none;">
+        <div style="padding:20px; display:flex; align-items:center; gap:15px;">
+            <button onclick="location.reload()" style="background:none; border:none; font-size:2rem;">←</button>
+            <h2 id="z-title" style="margin:0; font-weight:900; text-transform:uppercase;"></h2>
+        </div>
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <div id="edit" class="modal">
+        <div class="modal-content">
+            <h3 id="e-title" style="margin-top:0;">EDIT</h3>
+            <input type="text" id="i-room" class="input-luxe" placeholder="Room Number">
+            <input type="text" id="i-guest" class="input-luxe" placeholder="Guest Name">
+            <input type="text" id="i-seller" class="input-luxe" placeholder="Sold by">
+            <select id="i-sticker" class="input-luxe">
+                <option value="">No Sticker</option>
+                <option value="🎂">🎂 Birthday</option><option value="⭐">⭐ VIP</option><option value="❤️">❤️ Honeymoon</option>
+                <option value="⚠️">⚠️ Allergy</option><option value="🍉">🍉 Fruits</option><option value="🧸">🧸 Family</option>
+                <option value="🔕">🔕 Quiet</option><option value="🧊">🧊 Ice</option><option value="🌊">🌊 Front Row</option>
+                <option value="🚫">🚫 No Swim</option><option value="♿">♿ Special</option><option value="🥂">🥂 Celeb</option>
+            </select>
+            <div class="status-box">
+                <div onclick="setSt('free')" id="b-free" class="s-dot" style="background:white"></div>
+                <div onclick="setSt('booked')" id="b-booked" class="s-dot" style="background:var(--st-booked)"></div>
+                <div onclick="setSt('villas')" id="b-villas" class="s-dot" style="background:var(--st-villas)"></div>
+                <div onclick="setSt('comp')" id="b-comp" class="s-dot" style="background:var(--st-comp)"></div>
+            </div>
+            <button onclick="save()" style="width:100%; padding:20px; background:var(--olive); color:white; border:none; border-radius:15px; font-weight:900; font-size:1.1rem;">SAVE CHANGES</button>
+            <button onclick="document.getElementById('edit').style.display='none'" style="width:100%; background:none; border:none; margin-top:15px; color:#999; font-weight:700;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const config = {
+            apiKey: "AIzaSyB9RaIynSU_EMATYOq8xCT2uySnV-2k6G8",
+            databaseURL: "https://cabanaspace-default-rtdb.firebaseio.com",
+            projectId: "cabanaspace"
+        };
+        firebase.initializeApp(config);
+        const db = firebase.database();
+        let curZ, curI, curSt = 'free';
+
+        db.ref('notes').on('value', s => { document.getElementById('daily-val').innerText = s.val() || "Tap to write..."; });
+
+        function render(name, count) {
+            curZ = name;
+            document.getElementById('home').style.display = 'none';
+            document.getElementById('zone').style.display = 'block';
+            document.getElementById('z-title').innerText = name;
+            
+            db.ref('zones/'+name).on('value', snap => {
+                const data = snap.val() || {};
+                const g = document.getElementById('grid');
+                g.innerHTML = '';
+                for(let i=1; i<=count; i++) {
+                    const c = data[i] || {room:'', status:'free', sticker:'', guest:'', seller:''};
+                    const isFree = !c.room || c.room === '';
+                    g.innerHTML += `
+                        <div class="card st-${c.status}" onclick="openE(${i},'${c.room}','${c.status}','${c.sticker}','${c.guest}','${c.seller}')">
+                            <small>${name} ${i}</small>
+                            <b>${isFree ? 'FREE' : c.room}</b>
+                            <span class="info-line">${c.guest || ''}</span>
+                            <span class="info-line" style="font-style:italic; opacity:0.8;">${c.seller || ''}</span>
+                            <span style="font-size:1.4rem;">${c.sticker || ''}</span>
+                        </div>`;
+                }
+            });
+        }
+
+        function openE(id, r, s, stik, g, sel) {
+            curI = id;
+            document.getElementById('i-room').value = r || '';
+            document.getElementById('i-guest').value = g || '';
+            document.getElementById('i-seller').value = sel || '';
+            document.getElementById('i-sticker').value = stik || '';
+            setSt(s || 'free');
+            document.getElementById('edit').style.display = 'flex';
+        }
+
+        function setSt(s) {
+            curSt = s;
+            ['free','booked','villas','comp'].forEach(x => {
+                document.getElementById('b-'+x).style.border = (x === s) ? '4px solid black' : '2px solid #eee';
+            });
+        }
+
+        function save() {
+            db.ref('zones/'+curZ+'/'+curI).set({
+                room: document.getElementById('i-room').value,
+                guest: document.getElementById('i-guest').value,
+                seller: document.getElementById('i-seller').value,
+                sticker: document.getElementById('i-sticker').value,
+                status: curSt
+            });
+            document.getElementById('edit').style.display = 'none';
+        }
+
+        function editDaily() {
+            let v = prompt("Daily Notes:", document.getElementById('daily-val').innerText);
+            if(v !== null) db.ref('notes').set(v);
+        }
+    </script>
+</body>
+</html>

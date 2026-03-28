@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CABANA RESERVATION | GULZADA</title>
+    <style>
+        :root {
+            --orange: #FF6A00;
+            --dark: #0f0f0f;
+            --bg-overlay: rgba(0,0,0,0.85); /* Затемнение фона */
+            /* Цвета статусов (спокойные) */
+            --status-free: #27ae60;      /* Зеленый */
+            --status-booked: #FF6A00;    /* Оранжевый */
+            --status-comp: #f1c40f;      /* Желтый */
+            --status-event: #2980b9;      /* Синий */
+            --status-vip: #8e44ad;       /* Фиолетовый (NEW) */
+        }
+
+        body {
+            margin: 0; font-family: 'Avenir', sans-serif; color: white; text-align: center;
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('lujo-beach.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* --- ГЛАВНЫЙ ЭКРАН --- */
+        .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hero h1 { font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 5px; opacity: 0.9; }
+        .by-line { font-size: 1.8rem; letter-spacing: 1px; margin-bottom: 50px; font-weight: 300; }
+        
+        .btn-main {
+            width: 280px; background: none; color: white; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 10px;
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+            cursor: pointer; margin: 10px 0; transition: 0.3s;
+        }
+        .btn-main:hover { background: rgba(255,255,255,0.1); border-color: white; }
+        .btn-filled { background-color: var(--orange); border: none; font-weight: bold; }
+        .btn-filled:hover { background-color: #e65f00; }
+
+        /* --- ЭКРАН ВЫБОРА ЗОН --- */
+        .zones-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 15px; }
+
+        /* --- ЭКРАН СЕТКИ (КОМПАКТНЫЙ) --- */
+        .grid-screen { display: none; padding: 15px; box-sizing: border-box; }
+        .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .zone-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); margin: 0; }
+        
+        /* Сетка: 4 кабаны в ряд на мобильном */
+        .cabana-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-width: 400px; /* Чтобы сетка была компактной по центру */
+            margin: 0 auto;
+        }
+
+        /* Ячейка кабаны (маленькая) */
+        .cabana-cell {
+            background-color: var(--status-free); /* Дефолт: свободна */
+            padding: 15px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            border: 2px solid transparent;
+        }
+        .cabana-cell:active { transform: scale(0.95); }
+        .cabana-cell.selected { border-color: white; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+        .cell-num { font-size: 1rem; font-weight: bold; display: block; }
+        .cell-room { font-size: 0.65rem; opacity: 0.9; display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+        /* --- ОКНО ИНФОРМАЦИИ (LEGEND) --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .modal-content { max-width: 350px; text-align: center; }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 2.5rem; cursor: pointer; color: var(--orange); }
+        
+        .legend-item { display: flex; align-items: center; margin: 15px 0; font-size: 0.95rem; text-align: left; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; margin-right: 15px; flex-shrink: 0; }
+
+        /* --- ПАНЕЛЬ РЕДАКТИРОВАНИЯ (ADMIN) --- */
+        .admin-panel {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #1a1a1a; border-top: 2px solid var(--orange);
+            z-index: 3000; padding: 20px; box-sizing: border-box;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .admin-title { font-size: 1.1rem; font-weight: bold; color: var(--orange); margin: 0; }
+        .close-admin { font-size: 1.5rem; cursor: pointer; }
+
+        .admin-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .admin-input {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 12px; border-radius: 8px; font-size: 1rem;
+        }
+        .admin-input:focus { border-color: var(--orange); outline: none; }
+
+        .color-selector { display: flex; justify-content: space-between; gap: 5px; margin-top: 10px; }
+        .color-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+            cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .color-btn.active { border-color: white; transform: scale(1.1); }
+
+    </style>
+</head>
+<body>
+
+    <div id="hero-screen" class="hero">
+        <h1>Cabana Reservation</h1>
+        <div class="by-line">Cabana Booking by Gulzada</div>
+        <button class="btn-main btn-filled" onclick="showScreen('zones-screen')">Choose your cabana zone</button>
+        <button class="btn-main" onclick="showModal('info-modal')">Information</button>
+    </div>
+
+    <div id="zones-screen" class="zones-screen">
+        <button class="btn-main" onclick="openZone('Escape', 21)">Escape (21)</button>
+        <button class="btn-main" onclick="openZone('Lotus', 8)">Lotus (8)</button>
+        <button class="btn-main" onclick="openZone('Joy Stone', 18)">Joy Stone (18)</button>
+        <button onclick="showScreen('hero-screen')" style="background:none; border:none; color:white; margin-top:20px; opacity:0.7;">← Back</button>
+    </div>
+
+    <div id="grid-screen" class="grid-screen">
+        <div class="grid-header">
+            <button onclick="showScreen('zones-screen')" style="background:none; border:none; color:white; font-size:1.5rem;">←</button>
+            <h2 id="zone-title" class="zone-title">ZONE</h2>
+            <div style="width:30px;"></div> </div>
+        <div id="cabana-grid" class="cabana-grid">
+            </div>
+    </div>
+
+    <div id="info-modal" class="modal">
+        <div class="close-modal" onclick="closeModal('info-modal')">×</div>
+        <div class="modal-content">
+            <h2 style="color: var(--orange); letter-spacing: 3px; margin-bottom: 25px;">WELCOME</h2>
+            <p style="opacity: 0.8; line-height: 1.6; font-size: 0.95rem; margin-bottom: 30px;">
+                You can check real-time availability and track cabana bookings here.
+            </p>
+            <div class="legend-item"><div class="dot" style="background: var(--status-free);"></div> Free — Green</div>
+            <div class="legend-item"><div class="dot" style="background: var(--status-booked);"></div> Booked — Orange</div>
+            <div class="legend-item"><div class="dot" style="background: var(--status-comp);"></div> Complimentary — Yellow</div>
+            <div class="legend-item"><div class="dot" style="background: var(--status-event);"></div> Event — Blue</div>
+            <div class="legend-item"><div class="dot" style="background: var(--status-vip);"></div> VIP / Special — Purple</div>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="admin-panel">
+        <div class="admin-header">
+            <h3 id="admin-cabana-title" class="admin-title">CABANA №--</h3>
+            <div class="close-admin" onclick="closeAdmin()">×</div>
+        </div>
+        
+        <div class="admin-inputs">
+            <input type="text" id="admin-room" class="admin-input" placeholder="Guest Room (e.g., 2204)">
+            <input type="text" id="admin-pension" class="admin-input" placeholder="Pension Type (e.g., AI)">
+        </div>
+
+        <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; text-align: left;">Set Status Color:</div>
+        <div class="color-selector">
+            <button class="color-btn" style="background: var(--status-free);" onclick="setAdminColor('free')"></button>
+            <button class="color-btn" style="background: var(--status-booked);" onclick="setAdminColor('booked')"></button>
+            <button class="color-btn" style="background: var(--status-comp);" onclick="setAdminColor('comp')"></button>
+            <button class="color-btn" style="background: var(--status-event);" onclick="setAdminColor('event')"></button>
+            <button class="color-btn" style="background: var(--status-vip);" onclick="setAdminColor('vip')"></button>
+        </div>
+
+        <button class="btn-main btn-filled" style="width: 100%; margin-top: 20px;" onclick="saveCabanaChanges()">Save Changes</button>
+    </div>
+
+    <script>
+        // Данные о кабанах (в идеале должны быть на сервере, пока храним в браузере)
+        let cabanaData = JSON.parse(localStorage.getItem('lujoCabanaData')) || {};
+        let currentEditingId = null; // ID кабаны, которую редактируем
+        let selectedStatus = 'free'; // Выбранный статус в админке
+
+        function showScreen(screenId) {
+            document.querySelectorAll('body > div:not(.modal):not(.admin-panel)').forEach(s => s.style.display = 'none');
+            document.getElementById(screenId).style.display = screenId === 'grid-screen' ? 'block' : 'flex';
+            if (screenId !== 'grid-screen') closeAdmin();
+        }
+
+        function showModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
+        // Открыть сетку зоны
+        function openZone(zoneName, count) {
+            showScreen('grid-screen');
+            document.getElementById('zone-title').innerText = zoneName;
+            const grid = document.getElementById('cabana-grid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const cabanaId = `${zoneName}-${i}`;
+                const data = cabanaData[cabanaId] || { room: 'Free', status: 'free' };
+                
+                const cell = document.createElement('div');
+                cell.className = `cabana-cell status-${data.status}`;
+                cell.id = cabanaId;
+                cell.style.backgroundColor = `var(--status-${data.status})`; // Установка цвета
+                cell.onclick = () => openAdmin(cabanaId);
+
+                cell.innerHTML = `
+                    <span class="cell-num">${i}</span>
+                    <span class="cell-room" id="${cabanaId}-room-text">${data.room}</span>
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        // --- ФУНКЦИИ АДМИНКИ ---
+
+        function openAdmin(cabanaId) {
+            currentEditingId = cabanaId;
+            const data = cabanaData[cabanaId] || { room: '', pension: '', status: 'free' };
+            const num = cabanaId.split('-')[1];
+
+            // Заполнить поля
+            document.getElementById('admin-cabana-title').innerText = `CABANA №${num}`;
+            document.getElementById('admin-room').value = data.room === 'Free' ? '' : data.room;
+            document.getElementById('admin-pension').value = data.pension || '';
+            
+            // Выбрать цвет
+            setAdminColor(data.status);
+
+            // Подсветить ячейку
+            document.querySelectorAll('.cabana-cell').forEach(c => c.classList.remove('selected'));
+            document.getElementById(cabanaId).classList.add('selected');
+
+            // Показать панель
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-panel').style.display = 'none';
+            document.querySelectorAll('.cabana-cell').forEach(c => c.classList.remove('selected'));
+            currentEditingId = null;
+        }
+
+        function setAdminColor(status) {
+            selectedStatus = status;
+            // Снять выделение со всех кнопок
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            // Найти кнопку по цвету фона и выделить (костыль, но простой)
+            const colors = { free: 'var(--status-free)', booked: 'var(--status-booked)', comp: 'var(--status-comp)', event: 'var(--status-event)', vip: 'var(--status-vip)' };
+            document.querySelectorAll('.color-btn').forEach(b => {
+                if (b.style.backgroundColor === colors[status]) b.classList.add('active');
+            });
+        }
+
+        function saveCabanaChanges() {
+            if (!currentEditingId) return;
+
+            const roomInput = document.getElementById('admin-room').value.trim();
+            const pensionInput = document.getElementById('admin-pension').value.trim();
+
+            // Сохранить данные
+            cabanaData[currentEditingId] = {
+                room: roomInput || 'Free',
+                pension: pensionInput,
+                status: selectedStatus
+            };
+
+            // Обновить локальное хранилище
+            localStorage.setItem('lujoCabanaData', JSON.stringify(cabanaData));
+
+            // Обновить саму ячейку визуально
+            const cell = document.getElementById(currentEditingId);
+            const roomText = document.getElementById(`${currentEditingId}-room-text`);
+
+            cell.style.backgroundColor = `var(--status-${selectedStatus})`;
+            roomText.innerText = roomInput || 'Free';
+
+            closeAdmin();
+        }
+    </script>
+</body>
+</html>

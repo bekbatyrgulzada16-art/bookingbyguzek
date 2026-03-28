@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LUJO | CABANA ELITE</title>
+    <style>
+        :root {
+            --lujo-gold: #D4AF37;
+            --lujo-orange: #FF6A00;
+            --sand-bg: #F9F7F2;
+            --card-white: #FFFFFF;
+            /* Пастельная палитра для статусов */
+            --st-free: #E9F7EF;
+            --st-booked: #FFF5F0;
+            --st-comp: #FEF9E7;
+            --st-event: #EBF5FB;
+            --st-vip: #F5EEF8;
+        }
+
+        body {
+            margin: 0; font-family: 'Avenir', 'Segoe UI', sans-serif; color: #333;
+            background: var(--sand-bg);
+            background-image: linear-gradient(rgba(249, 247, 242, 0.8), rgba(249, 247, 242, 0.8)), url('lujo-beach.png');
+            background-size: cover; background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* ГЛАВНЫЙ ЭКРАН */
+        .hero { padding: 40px 20px; text-align: center; }
+        .logo-text { font-size: 0.7rem; letter-spacing: 6px; text-transform: uppercase; color: var(--lujo-orange); margin-bottom: 10px; font-weight: bold;}
+        .main-title { font-size: 2.2rem; font-weight: 300; margin-bottom: 30px; color: #1a1a1a; }
+
+        /* БЛОК "ЦЕЛЬ ДНЯ" */
+        .daily-focus {
+            background: white; margin: 0 auto 30px; max-width: 320px; padding: 20px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--lujo-orange); text-align: left;
+        }
+        .daily-focus h4 { margin: 0; font-size: 0.7rem; text-transform: uppercase; opacity: 0.5; }
+        .daily-focus p { margin: 8px 0 0; font-size: 0.95rem; font-style: italic; color: #444; }
+
+        .btn-elite {
+            width: 280px; background: white; color: #1a1a1a; padding: 20px;
+            border: none; border-radius: 15px; font-size: 0.85rem; text-transform: uppercase;
+            letter-spacing: 2px; cursor: pointer; margin: 10px 0; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s;
+        }
+        .btn-orange { background: var(--lujo-orange); color: white; }
+        .btn-elite:active { transform: translateY(2px); box-shadow: none; }
+
+        /* СЕТКА */
+        .grid-screen { display: none; padding: 15px; }
+        .cabana-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 500px; margin: 20px auto; }
+
+        .cabana-card {
+            background: white; padding: 15px 5px; border-radius: 18px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05);
+            transition: 0.3s; position: relative; min-height: 90px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .room-num { font-size: 1.1rem; font-weight: 900; color: #1a1a1a; }
+        .cab-id { font-size: 0.6rem; text-transform: uppercase; opacity: 0.4; margin-bottom: 5px; }
+        .cab-note { font-size: 0.6rem; color: #888; margin-top: 5px; font-style: italic; }
+
+        /* ЦВЕТА СТАТУСОВ */
+        .cabana-card.free { background: var(--st-free); }
+        .cabana-card.booked { background: var(--st-booked); border-color: #ffd8c2; }
+        .cabana-card.comp { background: var(--st-comp); }
+        .cabana-card.event { background: var(--st-event); }
+        .cabana-card.vip { background: var(--st-vip); }
+
+        /* STAFF NOTES / CHECKLIST */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 4000;
+            flex-direction: column; justify-content: flex-end;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 30px 30px 0 0;
+            width: 100%; box-sizing: border-box; max-height: 90vh; overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex; align-items: center; background: #f9f9f9; padding: 12px;
+            border-radius: 12px; margin-bottom: 10px; font-size: 0.9rem;
+        }
+        .todo-check { width: 20px; height: 20px; margin-right: 12px; border: 2px solid var(--lujo-orange); border-radius: 5px; cursor: pointer;}
+        
+        /* ПАНЕЛЬ РЕДАКТИРОВАНИЯ */
+        .admin-input {
+            width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 12px;
+            margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; background: #fcfcfc;
+        }
+        .color-selector { display: flex; justify-content: space-between; margin: 20px 0; }
+        .color-dot { width: 45px; height: 45px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.active { border-color: #1a1a1a; transform: scale(1.1); }
+
+    </style>
+</head>
+<body>
+
+    <div id="hero-screen" class="hero">
+        <div class="logo-text">LUJO BODRUM</div>
+        <h1 class="main-title">Cabana Management</h1>
+        
+        <div class="daily-focus" onclick="editDailyFocus()">
+            <h4>Shift Focus:</h4>
+            <p id="focus-text">Welcome all guests with a smile and check VIP arrivals.</p>
+        </div>
+
+        <button class="btn-elite btn-orange" onclick="showScreen('zones-screen')">Cabana Zones</button>
+        <button class="btn-elite" onclick="openStaffBoard()">Staff Board & Tasks</button>
+        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">Designed by Gulzada</p>
+    </div>
+
+    <div id="zones-screen" class="hero" style="display:none;">
+        <h2 style="font-weight: 300; margin-bottom: 30px;">Select Zone</h2>
+        <button class="btn-elite" onclick="openZone('Escape', 21)">Escape (21)</button>
+        <button class="btn-elite" onclick="openZone('Lotus', 8)">Lotus (8)</button>
+        <button class="btn-elite" onclick="openZone('Joy Stone', 18)">Joy Stone (18)</button>
+        <button onclick="showScreen('hero-screen')" style="background:none; border:none; color:#888; margin-top: 20px;">← BACK</button>
+    </div>
+
+    <div id="grid-screen" class="grid-screen">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button onclick="showScreen('zones-screen')" style="background:none; border:none; font-size:1.5rem;">←</button>
+            <h2 id="zone-title" style="font-weight:300; text-transform:uppercase; letter-spacing:2px; font-size:1.1rem;"></h2>
+            <div style="width:30px;"></div>
+        </div>
+        <div id="cabana-grid" class="cabana-grid"></div>
+    </div>
+
+    <div id="staff-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">Staff Board</h2>
+            <div style="margin-bottom:20px;">
+                <input type="text" id="new-todo" class="admin-input" placeholder="Add a task for the team...">
+                <button class="btn-elite btn-orange" style="width:100%; margin:0;" onclick="addTask()">Add Task</button>
+            </div>
+            <div id="todo-list">
+                </div>
+            <button onclick="closeModal('staff-modal')" style="width:100%; margin-top:20px; padding:15px; background:#f5f5f5; border:none; border-radius:15px; font-weight:bold;">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="admin-title" style="margin-top:0;">Edit Cabana</h3>
+            <input type="text" id="admin-room" class="admin-input" placeholder="Room Number">
+            <input type="text" id="admin-note" class="admin-input" placeholder="Quick Note (e.g. B-Day)">
+            
+            <div class="color-selector">
+                <div class="color-dot" style="background:var(--st-free)" onclick="setStatus('free')"></div>
+                <div class="color-dot" style="background:var(--st-booked)" onclick="setStatus('booked')"></div>
+                <div class="color-dot" style="background:var(--st-comp)" onclick="setStatus('comp')"></div>
+                <div class="color-dot" style="background:var(--st-event)" onclick="setStatus('event')"></div>
+                <div class="color-dot" style="background:var(--st-vip)" onclick="setStatus('vip')"></div>
+            </div>
+            
+            <button class="btn-elite btn-orange" style="width:100%; margin:0;" onclick="saveChanges()">Save Details</button>
+        </div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lujo_elite_db')) || {};
+        let tasks = JSON.parse(localStorage.getItem('lujo_tasks')) || [];
+        let currentId = null;
+        let currentStatus = 'free';
+
+        function showScreen(id) {
+            document.querySelectorAll('body > div:not(.modal)').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ЗАДАЧИ
+        function openStaffBoard() { renderTasks(); showModal('staff-modal'); }
+        function addTask() {
+            const val = document.getElementById('new-todo').value;
+            if(!val) return;
+            tasks.unshift({ text: val, done: false });
+            localStorage.setItem('lujo_tasks', JSON.stringify(tasks));
+            document.getElementById('new-todo').value = '';
+            renderTasks();
+        }
+        function renderTasks() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = tasks.map((t, i) => `
+                <div class="todo-item" onclick="toggleTask(${i})">
+                    <div class="todo-check" style="${t.done?'background:var(--lujo-orange)':''}"></div>
+                    <span style="${t.done?'text-decoration:line-through; opacity:0.5':''}">${t.text}</span>
+                </div>
+            `).join('');
+        }
+        function toggleTask(i) {
+            tasks[i].done = !tasks[i].done;
+            localStorage.setItem('lujo_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        // ЦЕЛЬ ДНЯ
+        function editDailyFocus() {
+            const newFocus = prompt("What is the focus for this shift?", document.getElementById('focus-text').innerText);
+            if(newFocus) {
+                document.getElementById('focus-text').innerText = newFocus;
+                localStorage.setItem('lujo_focus', newFocus);
+            }
+        }
+        document.getElementById('focus-text').innerText = localStorage.getItem('lujo_focus') || "Welcome all guests with a smile!";
+
+        // КАБАНЫ
+        function openZone(name, count) {
+            showScreen('grid-screen');
+            document.getElementById('zone-title').innerText = name;
+            const grid = document.getElementById('cabana-grid');
+            grid.innerHTML = '';
+            for(let i=1; i<=count; i++) {
+                let id = name + i;
+                let data = db[id] || { room: 'FREE', note: '', status: 'free' };
+                grid.innerHTML += `
+                    <div class="cabana-card ${data.status}" onclick="openAdmin('${id}', ${i}, '${name}')">
+                        <span class="cab-id">#${i}</span>
+                        <span class="room-num">${data.room}</span>
+                        <span class="cab-note">${data.note}</span>
+                    </div>`;
+            }
+        }
+
+        function openAdmin(id, num, zone) {
+            currentId = id;
+            let data = db[id] || { room: '', note: '', status: 'free' };
+            document.getElementById('admin-title').innerText = zone + " #" + num;
+            document.getElementById('admin-room').value = data.room === 'FREE' ? '' : data.room;
+            document.getElementById('admin-note').value = data.note;
+            currentStatus = data.status;
+            showModal('admin-modal');
+        }
+
+        function setStatus(s) { currentStatus = s; }
+
+        function saveChanges() {
+            db[currentId] = {
+                room: document.getElementById('admin-room').value.toUpperCase() || 'FREE',
+                note: document.getElementById('admin-note').value,
+                status: currentStatus
+            };
+            localStorage.setItem('lujo_elite_db', JSON.stringify(db));
+            closeModal('admin-modal');
+            openZone(currentId.replace(/[0-9]/g, ''));
+        }
+    </script>
+</body>
+</html>

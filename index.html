@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabana Booking by Gulzada</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F4F3EF; margin: 0; padding: 20px; color: #333; }
+        h1 { text-align: center; font-size: 32px; margin-bottom: 15px; color: #677D73; }
+        button.info-btn { background-color: #677D73; color: #fff; padding: 10px 16px; border: none; border-radius: 25px; cursor: pointer; font-size: 16px; margin-bottom: 20px; }
+        .section { background: #fff; padding: 15px; border-radius: 25px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .section h2 { margin: 0; cursor: pointer; color: #677D73; }
+        .content { display: none; margin-top: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(100px,1fr)); gap: 10px; }
+        .cell { background: #E9E7E2; padding: 10px; border-radius: 25px; text-align: center; cursor: pointer; position: relative; border: 2px solid transparent; transition:0.2s; font-size: 14px; }
+        .cell:hover { transform: scale(1.05); }
+        .emoji { display: block; font-size: 20px; margin-bottom: 5px; }
+        .status-free { background:#A7CFA5; border-color:#8FA79C; }
+        .status-booked { background:#E26D6D; border-color:#C55B5B; }
+        .status-complimentary { background:#E8D27C; border-color:#C9B35C; }
+        .status-event { background:#7DAAE3; border-color:#5F88C0; }
+        .color-circle { display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:8px; vertical-align:middle; }
+        textarea.notes { width: 100%; padding: 10px; border-radius: 25px; border:1px solid #ccc; margin-top: 5px; resize: vertical; box-sizing: border-box; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index: 1000; }
+        .modal-content { background:#fff; padding:20px; border-radius:12px; width:320px; }
+        label { display:block; margin-top:10px; font-weight:bold; }
+        input, select, textarea { width:100%; margin-top:5px; padding:5px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box; }
+        .save-btn { background: #677D73; color: white; border: none; padding: 10px; border-radius: 10px; margin-top: 15px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+<h1>Cabana Booking by Gulzada</h1>
+<button class="info-btn" onclick="toggle('info-content')">ℹ️ Information</button>
+
+<div class="section" id="info">
+    <div class="content" id="info-content">
+        <h3>Stickers / Semboller</h3>
+        <ul style="column-count: 2; font-size: 12px;">
+            <li>♿ Wheelchair</li><li>🌶️ Spicy Allergy</li><li>🤧 Allergy</li><li>🔇 Silence</li>
+            <li>🚭 Non-smoker</li><li>👶 Kids</li><li>💍 Honeymoon</li><li>🎂 Birthday</li>
+            <li>⭐ VIP</li><li>🧼 Cleaning</li><li>💌 Special</li><li>👵 Elderly</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <h2 onclick="toggle('board')">📌 Board / Announcements</h2>
+    <div class="content" id="board">
+        <textarea id="boardText" class="notes" rows="5" placeholder="Write announcements here..."></textarea>
+        <button class="save-btn" onclick="saveBoard()">Save Board</button>
+    </div>
+</div>
+
+<div id="cabanaSections"></div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Edit Cabana</h3>
+        <label>Room Number</label><input type="text" id="modalRoom">
+        <label>Sold By</label><input type="text" id="modalSold">
+        <label>Status</label>
+        <select id="modalStatus">
+            <option value="free">Free / Boş</option>
+            <option value="booked">Booked / Rezerve</option>
+            <option value="complimentary">Complimentary / İkram</option>
+            <option value="event">Event / Etkinlik</option>
+        </select>
+        <label>Emoji / Sticker</label>
+        <select id="modalEmoji">
+            <option value="">None</option>
+            <option value="♿">Wheelchair</option><option value="🌶️">Spicy</option>
+            <option value="🤧">Allergy</option><option value="🔇">Silence</option>
+            <option value="🚭">No Smoke</option><option value="👶">Kids</option>
+            <option value="💍">Honeymoon</option><option value="🎂">Birthday</option>
+            <option value="⭐">VIP</option><option value="🧼">Cleaning</option>
+            <option value="💌">Special</option><option value="👵">Elderly</option>
+        </select>
+        <label>Notes 📝</label>
+        <textarea id="modalNotes" class="notes" rows="3"></textarea>
+        <button class="save-btn" onclick="saveCell()">Save Cabana</button>
+    </div>
+</div>
+
+<script>
+// --- КОНФИГУРАЦИЯ SUPABASE ---
+const SUPABASE_URL = 'URL_ТВОЕГО_ПРОЕКТА'; 
+const SUPABASE_KEY = 'ТВОЙ_ANON_KEY';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const tableName = 'cabanabyguzek'; 
+
+const cabanasData = [
+    {name:'Escape', count:21},
+    {name:'Lotus', count:8},
+    {name:'Joystone', count:18}
+];
+
+let cabanas = {};
+
+// Переключение видимости
+function toggle(id){
+    const el=document.getElementById(id);
+    el.style.display = el.style.display==='block'?'none':'block';
+}
+
+// Загрузка всех данных из базы
+async function fetchAllData() {
+    // Грузим объявления
+    const { data: boardData } = await _supabase.from(tableName).select('*').eq('name', 'announcement').single();
+    if(boardData) document.getElementById('boardText').value = boardData.info;
+
+    // Грузим кабины
+    const { data: dbCabanas } = await _supabase.from(tableName).select('*').neq('name', 'announcement');
+    
+    // Группируем данные для отрисовки
+    cabanas = {};
+    dbCabanas.forEach(row => {
+        const [sec, index] = row.name.split('_');
+        if(!cabanas[sec]) cabanas[sec] = [];
+        cabanas[sec][parseInt(index)] = row.info ? JSON.parse(row.info) : {room:'', sold:'', status:'free', emoji:'', notes:''};
+    });
+    
+    renderAll();
+}
+
+function renderAll() {
+    const container = document.getElementById('cabanaSections');
+    container.innerHTML = '';
+    cabanasData.forEach(sec => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className='section';
+        sectionDiv.innerHTML = `<h2 onclick="toggle('${sec.name}')">🏝️ ${sec.name}</h2><div class="content" id="${sec.name}" style="display:block"><div class="grid"></div></div>`;
+        container.appendChild(sectionDiv);
+        
+        const grid = sectionDiv.querySelector('.grid');
+        for(let i=0; i<sec.count; i++) {
+            const data = (cabanas[sec.name] && cabanas[sec.name][i]) || {room:'', sold:'', status:'free', emoji:'', notes:''};
+            const cell = document.createElement('div');
+            cell.className = 'cell status-' + data.status;
+            cell.innerHTML = `<span class="emoji">${data.emoji || '🏝️'}</span>${sec.name} ${i+1}<br><small>R: ${data.room||'-'}</small>`;
+            cell.onclick = () => openModal(sec.name, i, data);
+            grid.appendChild(cell);
+        }
+    });
+}
+
+// Сохранение объявлений
+async function saveBoard() {
+    const text = document.getElementById('boardText').value;
+    await _supabase.from(tableName).upsert({ name: 'announcement', info: text });
+    alert('Board Updated!');
+}
+
+// Модальное окно
+let currentSec, currentIndex;
+function openModal(sec, i, data) {
+    currentSec = sec; currentIndex = i;
+    document.getElementById('modalTitle').innerText = sec + ' ' + (i+1);
+    document.getElementById('modalRoom').value = data.room;
+    document.getElementById('modalSold').value = data.sold;
+    document.getElementById('modalStatus').value = data.status;
+    document.getElementById('modalEmoji').value = data.emoji;
+    document.getElementById('modalNotes').value = data.notes;
+    document.getElementById('modal').style.display = 'flex';
+}
+
+async function saveCell() {
+    const updatedData = {
+        room: document.getElementById('modalRoom').value,
+        sold: document.getElementById('modalSold').value,
+        status: document.getElementById('modalStatus').value,
+        emoji: document.getElementById('modalEmoji').value,
+        notes: document.getElementById('modalNotes').value
+    };
+
+    // Сохраняем в базу (имя строки будет например Escape_0)
+    await _supabase.from(tableName).upsert({ 
+        name: `${currentSec}_${currentIndex}`, 
+        info: JSON.stringify(updatedData) 
+    });
+
+    document.getElementById('modal').style.display = 'none';
+}
+
+// РЕАЛЬНОЕ ВРЕМЯ: слушаем изменения
+_supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: tableName }, () => {
+    fetchAllData(); // Перерисовываем у всех при любом изменении
+}).subscribe();
+
+// Закрытие модалки по клику мимо
+document.getElementById('modal').onclick = function(e){ if(e.target==this) this.style.display='none'; }
+
+// Первый запуск
+fetchAllData();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cabana Booking by Gulzada</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background: #F4F3EF; /* светло-бежевый фон */
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: #677D73; /* оливковый */
+}
+button.info-btn {
+    background-color: #677D73;
+    color: #fff;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 25px; /* Capsule / Fully Rounded */
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+.section {
+    background: #fff;
+    padding: 15px;
+    border-radius: 25px; /* Fully Rounded */
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.section h2 {
+    margin: 0;
+    cursor: pointer;
+    color: #677D73;
+}
+.content {
+    display: none;
+    margin-top: 15px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+    gap: 10px;
+}
+.cell {
+    background: #E9E7E2;
+    padding: 10px;
+    border-radius: 25px; /* Fully Rounded */
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid transparent;
+    transition:0.2s;
+    font-size: 14px;
+}
+.cell:hover {
+    transform: scale(1.05);
+}
+.emoji {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+.status-free { background:#A7CFA5; border-color:#8FA79C; }
+.status-booked { background:#E26D6D; border-color:#C55B5B; }
+.status-complimentary { background:#E8D27C; border-color:#C9B35C; }
+.status-event { background:#7DAAE3; border-color:#5F88C0; }
+.color-circle {
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    margin-right:8px;
+    vertical-align:middle;
+}
+textarea.notes {
+    width: 100%;
+    padding: 10px;
+    border-radius: 25px; /* Capsule / Fully Rounded */
+    border:1px solid #ccc;
+    margin-top: 5px;
+    resize: vertical;
+}
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.4);
+    justify-content:center;
+    align-items:center;
+}
+.modal-content {
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    width:320px;
+}
+label { display:block; margin-top:10px; font-weight:bold; }
+input, select, textarea { width:100%; margin-top:5px; padding:5px; border-radius:8px; border:1px solid #ccc; }
+</style>
+</head>
+<body>
+
+<h1>Cabana Booking by Gulzada</h1>
+<button class="info-btn" onclick="toggleInfo()">ℹ️ Information</button>
+
+<div class="section" id="info">
+<h2>Information</h2>
+<div class="content">
+<h3>Stickers / Semboller</h3>
+<ul>
+    <li>♿ Wheelchair / Engelli</li>
+    <li>🌶️ Spicy Allergy / Acılı alerji</li>
+    <li>🤧 Allergy / Alerji</li>
+    <li>🔇 Likes Silence / Sessizliği sever</li>
+    <li>🚭 Non-smoker / Sigara içmez</li>
+    <li>👶 Kids / Çocuklu</li>
+    <li>💍 Honeymoon / Balayı</li>
+    <li>🎂 Birthday / Doğum günü</li>
+    <li>⭐ VIP / VIP</li>
+    <li>🧼 Cleaning / Temizlik</li>
+    <li>💌 Special request / Özel istek</li>
+    <li>👵 Elderly guest / Yaşlı misafir</li>
+</ul>
+<h3>Colors / Renkler</h3>
+<ul>
+    <li><span class="color-circle" style="background:#A7CFA5;"></span>Free / Boш</li>
+    <li><span class="color-circle" style="background:#E26D6D;"></span>Booked / Rezerve</li>
+    <li><span class="color-circle" style="background:#E8D27C;"></span>Complimentary / Икрам</li>
+    <li><span class="color-circle" style="background:#7DAAE3;"></span>Event / Etkinlik</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2 onclick="toggle('board')">📌 Board / Announcements</h2>
+<div class="content" id="board">
+<textarea id="boardText" class="notes" rows="5" placeholder="Write announcements here..."></textarea>
+<button onclick="saveBoard()">Save</button>
+</div>
+</div>
+
+<div id="cabanaSections"></div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3>Edit Cabana 📝</h3>
+        <label>Room Number</label>
+        <input type="text" id="modalRoom">
+        <label>Sold By</label>
+        <input type="text" id="modalSold">
+        <label>Status</label>
+        <select id="modalStatus">
+            <option value="free">Free / Boш</option>
+            <option value="booked">Booked / Rezerve</option>
+            <option value="complimentary">Complimentary / Икрам</option>
+            <option value="event">Event / Etkinlik</option>
+        </select>
+        <label>Emoji / Sticker</label>
+        <select id="modalEmoji">
+            <option value="">None</option>
+            <option value="♿">Wheelchair / Engelli</option>
+            <option value="🌶️">Spicy Allergy / Acılı alerji</option>
+            <option value="🤧">Allergy / Alerji</option>
+            <option value="🔇">Likes Silence / Sessizliği sever</option>
+            <option value="🚭">Non-smoker / Sigara içmez</option>
+            <option value="👶">Kids / Çocuklu</option>
+            <option value="💍">Honeymoon / Balayı</option>
+            <option value="🎂">Birthday / Doğum günü</option>
+            <option value="⭐">VIP / VIP</option>
+            <option value="🧼">Cleaning / Temizlik</option>
+            <option value="💌">Special request / Özel istek</option>
+            <option value="👵">Elderly guest / Yaшлы misafir</option>
+        </select>
+        <label>Notes 📝</label>
+        <textarea id="modalNotes" class="notes" rows="3"></textarea>
+        <button onclick="saveCell()">Save</button>
+    </div>
+</div>
+
+<script>
+// --- НАСТРОЙКИ SUPABASE ---
+const SUPABASE_URL = 'https://bevfghaikmjowuqgcfgc.supabase.co';
+const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJldmZnaGFpa21qb3d1cWdjZmdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjA2ODgsImV4cCI6MjA5MDI5NjY4OH0.yGyS0PjodpN9u2bRW1XKruoVhttXUBc-ilLHnN13dn4';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const tableName = 'cabanabyguzek';
+
+// Toggle Information Section
+function toggleInfo(){
+    const info = document.getElementById('info').querySelector('.content');
+    info.style.display = info.style.display === 'block' ? 'none' : 'block';
+}
+
+// Toggle other sections
+function toggle(id){
+    const el=document.getElementById(id);
+    el.style.display = el.style.display==='block'?'none':'block';
+}
+
+// Cabanas Data
+const cabanasData = [
+    {name:'Escape', count:21},
+    {name:'Lotus', count:8},
+    {name:'Joystone', count:18}
+];
+
+let cabanas = {};
+
+// ЗАГРУЗКА ДАННЫХ ИЗ БАЗЫ
+async function loadData() {
+    // Грузим доску
+    const { data: boardData } = await _supabase.from(tableName).select('*').eq('name', 'board').single();
+    if(boardData) document.getElementById('boardText').value = boardData.info;
+
+    // Грузим кабины
+    const { data: dbCabanas } = await _supabase.from(tableName).select('*').neq('name', 'board');
+    cabanas = {};
+    if(dbCabanas) {
+        dbCabanas.forEach(row => { cabanas[row.name] = JSON.parse(row.info); });
+    }
+    renderSections();
+}
+
+function renderSections() {
+    const container = document.getElementById('cabanaSections');
+    container.innerHTML = '';
+    cabanasData.forEach(sec => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className='section';
+        sectionDiv.innerHTML = `<h2 onclick="toggle('${sec.name}')">🏝️ ${sec.name}</h2><div class="content" id="${sec.name}" style="display:block"><div class="grid"></div></div>`;
+        container.appendChild(sectionDiv);
+        renderGrid(sec.name);
+    });
+}
+
+function renderGrid(secName){
+    const grid = document.getElementById(secName).querySelector('.grid');
+    grid.innerHTML='';
+    const count = cabanasData.find(s => s.name === secName).count;
+    for(let i=1; i<=count; i++){
+        const key = `${secName}_${i}`;
+        const c = cabanas[key] || {room:'', sold:'', status:'free', emoji:'', notes:''};
+        const cell = document.createElement('div');
+        cell.className='cell status-'+c.status;
+        cell.innerHTML=`<span class="emoji">${c.emoji || '🌴'}</span>${secName} ${i}<br>Room: ${c.room||'-'}<br>Sold by: ${c.sold||'-'}`;
+        cell.onclick=()=>openModal(secName, i, c);
+        grid.appendChild(cell);
+    }
+}
+
+// СОХРАНЕНИЕ ДОСКИ
+async function saveBoard(){
+    const text = document.getElementById('boardText').value;
+    await _supabase.from(tableName).upsert({ name: 'board', info: text });
+    alert('Saved!');
+}
+
+// Модальное окно
+let currentSec, currentIndex;
+function openModal(sec, i, data){
+    currentSec=sec; currentIndex=i;
+    document.getElementById('modalRoom').value=data.room;
+    document.getElementById('modalSold').value=data.sold;
+    document.getElementById('modalStatus').value=data.status;
+    document.getElementById('modalEmoji').value=data.emoji;
+    document.getElementById('modalNotes').value=data.notes;
+    document.getElementById('modal').style.display='flex';
+}
+
+async function saveCell() {
+    const key = `${currentSec}_${currentIndex}`;
+    const updatedData = {
+        room: document.getElementById('modalRoom').value,
+        sold: document.getElementById('modalSold').value,
+        status: document.getElementById('modalStatus').value,
+        emoji: document.getElementById('modalEmoji').value,
+        notes: document.getElementById('modalNotes').value
+    };
+
+    // Сохраняем в Supabase
+    await _supabase.from(tableName).upsert({ 
+        name: key, 
+        info: JSON.stringify(updatedData) 
+    });
+
+    document.getElementById('modal').style.display = 'none';
+}
+
+// REALTIME ОБНОВЛЕНИЕ
+_supabase.channel('db_changes').on('postgres_changes', { event: '*', schema: 'public', table: tableName }, () => {
+    loadData();
+}).subscribe();
+
+document.getElementById('modal').onclick=function(e){
+    if(e.target==this)this.style.display='none';
+}
+
+// Запуск приложения
+loadData();
+</script>
+
+</body>
+</html>

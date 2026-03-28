@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CABANA BOOKING BY GULZADA</title>
+    <style>
+        :root {
+            --orange: #FF6A00;
+            /* Леденцовые прозрачные цвета */
+            --st-free: rgba(46, 204, 113, 0.5);
+            --st-booked: rgba(255, 106, 0, 0.5);
+            --st-comp: rgba(241, 196, 15, 0.5);
+            --st-event: rgba(52, 152, 219, 0.5);
+            --st-vip: rgba(155, 89, 182, 0.5);
+        }
+
+        body {
+            margin: 0; font-family: 'Avenir', sans-serif; color: white;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                        url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .container { padding: 20px; text-align: center; backdrop-filter: blur(3px); }
+
+        /* HEADER */
+        .main-header { margin-top: 30px; margin-bottom: 40px; }
+        .main-header h1 { font-size: 1.8rem; font-weight: 300; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .main-header p { font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); margin-top: 5px; font-weight: bold; }
+
+        /* BUTTONS */
+        .btn-glass {
+            width: 100%; max-width: 300px; padding: 18px; margin: 10px auto;
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px; color: white; font-size: 0.85rem; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+            backdrop-filter: blur(10px); display: block; transition: 0.2s;
+        }
+        .btn-orange { background: var(--orange); border: none; box-shadow: 0 8px 20px rgba(255, 106, 0, 0.3); }
+        .btn-glass:active { transform: scale(0.97); }
+
+        /* GRID */
+        .cabana-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            max-width: 500px; margin: 20px auto;
+        }
+
+        .cabana-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px; padding: 12px 5px; min-height: 105px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            backdrop-filter: blur(10px); color: white; transition: 0.2s;
+        }
+
+        .cab-num { font-size: 0.6rem; opacity: 0.8; font-weight: bold; }
+        .room-num { font-size: 1.1rem; font-weight: 900; margin: 3px 0; }
+        .guest-name { font-size: 0.65rem; font-weight: bold; height: 15px; overflow: hidden; }
+        .seller-info { font-size: 0.55rem; opacity: 0.7; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 3px; }
+
+        /* STATUS COLORS */
+        .st-free { background: var(--st-free); }
+        .st-booked { background: var(--st-booked); }
+        .st-comp { background: var(--st-comp); }
+        .st-event { background: var(--st-event); }
+        .st-vip { background: var(--st-vip); }
+
+        /* MODALS */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 5000; flex-direction: column;
+            justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; color: #333; padding: 25px; border-radius: 25px;
+            width: 90%; max-width: 350px; text-align: left;
+        }
+
+        .admin-input {
+            width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px;
+            border: 1px solid #ddd; font-size: 1rem; box-sizing: border-box;
+        }
+        .color-row { display: flex; justify-content: space-between; margin: 15px 0; }
+        .color-opt { width: 42px; height: 42px; border-radius: 50%; border: 3px solid #eee; cursor: pointer; }
+        .color-opt.active { border-color: var(--orange); transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="hero-screen">
+        <div class="main-header">
+            <h1>Cabana Booking</h1>
+            <p>by Gulzada</p>
+        </div>
+        <button class="btn-glass btn-orange" onclick="showScreen('zones-screen')">Choose Zone</button>
+        <button class="btn-glass" onclick="showModal('info-modal')">Colors & Info</button>
+    </div>
+
+    <div id="zones-screen" style="display:none;">
+        <div class="main-header"><h1>Zones</h1></div>
+        <button class="btn-glass" onclick="openZone('Escape', 21)">Escape</button>
+        <button class="btn-glass" onclick="openZone('Lotus', 8)">Lotus</button>
+        <button class="btn-glass" onclick="openZone('Joy Stone', 18)">Joy Stone</button>
+        <button class="btn-glass" style="border:none; opacity:0.6;" onclick="showScreen('hero-screen')">← Back</button>
+    </div>
+
+    <div id="grid-screen" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <button onclick="showScreen('zones-screen')" style="background:none; border:none; color:white; font-size:1.5rem;">←</button>
+            <h2 id="zone-title" style="text-transform:uppercase; letter-spacing:3px; margin:0;"></h2>
+            <div style="width:30px;"></div>
+        </div>
+        <div id="cabana-grid" class="cabana-grid"></div>
+    </div>
+</div>
+
+<div id="info-modal" class="modal" onclick="closeModal('info-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:var(--orange);">Information</h3>
+        <div style="margin:10px 0;"><span style="display:inline-block; width:20px; height:20px; background:var(--st-free); border-radius:5px; vertical-align:middle;"></span> — Available</div>
+        <div style="margin:10px 0;"><span style="display:inline-block; width:20px; height:20px; background:var(--st-booked); border-radius:5px; vertical-align:middle;"></span> — Booked</div>
+        <div style="margin:10px 0;"><span style="display:inline-block; width:20px; height:20px; background:var(--st-comp); border-radius:5px; vertical-align:middle;"></span> — Comp</div>
+        <div style="margin:10px 0;"><span style="display:inline-block; width:20px; height:20px; background:var(--st-event); border-radius:5px; vertical-align:middle;"></span> — Event</div>
+        <div style="margin:10px 0;"><span style="display:inline-block; width:20px; height:20px; background:var(--st-vip); border-radius:5px; vertical-align:middle;"></span> — VIP</div>
+        <button class="btn-glass btn-orange" style="max-width:100%; margin-top:15px; color:white;" onclick="closeModal('info-modal')">Close</button>
+    </div>
+</div>
+
+<div id="admin-panel" class="modal">
+    <div class="modal-content">
+        <h3 id="admin-header" style="margin-top:0;">Edit Cabana</h3>
+        <input type="text" id="in-room" class="admin-input" placeholder="Room Number">
+        <input type="text" id="in-guest" class="admin-input" placeholder="Guest Name">
+        <input type="text" id="in-seller" class="admin-input" placeholder="Sold by...">
+        
+        <div class="color-row">
+            <div class="color-opt" id="c-free" style="background:var(--st-free)" onclick="selectColor('free')"></div>
+            <div class="color-opt" id="c-booked" style="background:var(--st-booked)" onclick="selectColor('booked')"></div>
+            <div class="color-opt" id="c-comp" style="background:var(--st-comp)" onclick="selectColor('comp')"></div>
+            <div class="color-opt" id="c-event" style="background:var(--st-event)" onclick="selectColor('event')"></div>
+            <div class="color-opt" id="c-vip" style="background:var(--st-vip)" onclick="selectColor('vip')"></div>
+        </div>
+        
+        <button class="btn-glass btn-orange" style="max-width:100%; color:white;" onclick="saveCabana()">Save</button>
+        <button class="btn-glass" style="max-width:100%; color:#888; border:none;" onclick="closeAdmin()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('gulzada_final_db')) || {};
+    let currentId = null;
+    let selectedStatus = 'free';
+    let currentZoneName = '';
+    let currentZoneCount = 0;
+
+    function showScreen(id) {
+        document.getElementById('hero-screen').style.display = 'none';
+        document.getElementById('zones-screen').style.display = 'none';
+        document.getElementById('grid-screen').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function openZone(name, count) {
+        currentZoneName = name;
+        currentZoneCount = count;
+        showScreen('grid-screen');
+        document.getElementById('zone-title').innerText = name;
+        renderGrid();
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('cabana-grid');
+        grid.innerHTML = '';
+        for(let i=1; i<=currentZoneCount; i++) {
+            let id = currentZoneName + i;
+            let data = db[id] || { room: 'FREE', guest: '', seller: '', status: 'free' };
+            grid.innerHTML += `
+                <div class="cabana-card st-${data.status}" onclick="editCabana('${id}', ${i})">
+                    <span class="cab-num">#${i}</span>
+                    <span class="room-num">${data.room}</span>
+                    <span class="guest-name">${data.guest || ''}</span>
+                    <span class="seller-info">${data.seller ? 'By: '+data.seller : ''}</span>
+                </div>`;
+        }
+    }
+
+    function editCabana(id, num) {
+        currentId = id;
+        let data = db[id] || { room: '', guest: '', seller: '', status: 'free' };
+        document.getElementById('admin-header').innerText = currentZoneName + ' #' + num;
+        document.getElementById('in-room').value = data.room === 'FREE' ? '' : data.room;
+        document.getElementById('in-guest').value = data.guest;
+        document.getElementById('in-seller').value = data.seller;
+        selectColor(data.status);
+        showModal('admin-panel');
+    }
+
+    function selectColor(s) {
+        selectedStatus = s;
+        document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('active'));
+        document.getElementById('c-' + s).classList.add('active');
+    }
+
+    function saveCabana() {
+        db[currentId] = {
+            room: document.getElementById('in-room').value.toUpperCase() || 'FREE',
+            guest: document.getElementById('in-guest').value,
+            seller: document.getElementById('in-seller').value,
+            status: selectedStatus
+        };
+        localStorage.setItem('gulzada_final_db', JSON.stringify(db));
+        closeAdmin();
+        renderGrid(); // Обновляем только сетку, без лагов!
+    }
+
+    function closeAdmin() { closeModal('admin-panel'); }
+</script>
+
+</body>
+</html>

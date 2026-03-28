@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CABANA RESERVATION | GULZADA</title>
+    <style>
+        :root { 
+            --accent: #FF8A65; 
+            --dark: rgba(0,0,0,0.6); 
+        }
+        body { 
+            margin: 0; font-family: 'Avenir', sans-serif; color: white; text-align: center;
+            background: linear-gradient(var(--dark), var(--dark)), url('lujo-beach.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            height: 100vh; display: flex; flex-direction: column; justify-content: center;
+        }
+
+        #info-page {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 1000; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; cursor: pointer; }
+        .legend-item { display: flex; align-items: center; margin: 15px 0; font-size: 1rem; text-align: left; width: 250px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; }
+
+        .sub-title { font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px; opacity: 0.9; }
+        .main-title { font-size: 2.2rem; font-weight: 300; margin: 0 0 40px 0; }
+        
+        .btn-info { 
+            background: var(--accent); color: white; border: none; padding: 18px 40px; 
+            border-radius: 35px; font-size: 0.9rem; cursor: pointer; margin-bottom: 60px;
+        }
+
+        .zones-container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .btn-zone { 
+            width: 280px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); 
+            padding: 15px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="info-page">
+        <div class="close-btn" onclick="closeInfo()">×</div>
+        <h2 style="letter-spacing: 3px;">WELCOME</h2>
+        <p style="max-width: 300px; opacity: 0.8; line-height: 1.5; margin-bottom: 30px;">
+            You can check real-time availability and make your reservation here.
+        </p>
+        <div style="margin: 30px 0;">
+            <div class="legend-item"><div class="dot" style="background: #2ecc71;"></div> Free — Green</div>
+            <div class="legend-item"><div class="dot" style="background: #e74c3c;"></div> Booked — Red</div>
+            <div class="legend-item"><div class="dot" style="background: #f1c40f;"></div> Complimentary — Yellow</div>
+            <div class="legend-item"><div class="dot" style="background: #3498db;"></div> Event — Blue</div>
+        </div>
+        <button onclick="closeInfo()" style="background:none; border:1px solid white; color:white; padding:10px 30px; border-radius:20px; cursor:pointer;">BACK TO SITE</button>
+    </div>
+
+    <div class="sub-title">Cabana Reservation</div>
+    <div class="main-title">Cabana Booking by<br>Gulzada</div>
+    
+    <div>
+        <button class="btn-info" onclick="openInfo()">Information</button>
+    </div>
+
+    <div class="zones-container">
+        <button class="btn-zone">Escape (21 Cabanas)</button>
+        <button class="btn-zone">Lotus (8 Cabanas)</button>
+        <button class="btn-zone">Joy Stone (18 Cabanas)</button>
+    </div>
+
+    <script>
+        function openInfo() { document.getElementById('info-page').style.display = 'flex'; }
+        function closeInfo() { document.getElementById('info-page').style.display = 'none'; }
+    </script>
+</body>
+</html>

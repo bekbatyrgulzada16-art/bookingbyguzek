@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LUJO | CABANA NEON EDGE</title>
+    <style>
+        :root {
+            --bg: #000000; /* Глубокий черный */
+            --orange: #FF6A00;
+            --neon-glow: 0 0 15px rgba(255, 106, 0, 0.7); /* Оранжевое свечение */
+            
+            /* Новые неоновые цвета статусов (Мягкие, но горящие) */
+            --st-free: #2ecc71;      /* Зеленый неон */
+            --st-booked: #FF6A00;    /* Оранжевый неон */
+            --st-comp: #f1c40f;      /* Желтый неон */
+            --st-event: #3498db;      /* Синий неон */
+            --st-vip: #9b59b6;       /* Фиолетовый неон */
+            
+            /* Глассморфизм (матовое стекло) */
+            --glass: rgba(26, 26, 26, 0.6);
+            --blur: blur(20px);
+        }
+
+        body {
+            margin: 0; font-family: 'SF Pro Display', -apple-system, sans-serif; color: white; text-align: center;
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('lujo-beach.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- ГЛАВНЫЙ ЭКРАН (НЕОНОВЫЙ ХАБ) --- */
+        .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,106,0,0.15) 0%, rgba(0,0,0,0) 70%); z-index: -1; }
+        
+        .lujo-logo { font-size: 0.8rem; letter-spacing: 7px; text-transform: uppercase; margin-bottom: 5px; color: rgba(255,255,255,0.7); }
+        .booking-title { font-size: 2rem; font-weight: 200; margin-bottom: 50px; text-shadow: var(--neon-glow); }
+
+        /* Кнопки в стиле неона */
+        .btn-neon {
+            width: 280px; background: none; color: white; padding: 18px;
+            border: 2px solid var(--orange); border-radius: 50px;
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+            cursor: pointer; margin: 10px 0; font-weight: bold;
+            transition: 0.3s;
+            box-shadow: var(--neon-glow);
+        }
+        .btn-neon:active { transform: scale(0.96); box-shadow: 0 0 5px rgba(255, 106, 0, 0.5); }
+        .btn-secondary { border-color: rgba(255,255,255,0.3); box-shadow: none; font-weight: normal; font-size: 0.75rem;}
+
+        /* --- СЕТКА (NEON EDGE GRID) --- */
+        .grid-screen { display: none; padding: 10px; }
+        .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .cabana-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 500px; margin: 0 auto; }
+
+        /* Ячейка - неоновый прямоугольник */
+        .cabana-cell {
+            padding: 10px 5px; border-radius: 12px; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; min-height: 80px;
+            position: relative; overflow: hidden;
+            background: rgba(0,0,0,0.5); border: 2px solid transparent; /* Граница горит статусом */
+            transition: 0.3s;
+        }
+        .cabana-cell::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: inherit; filter: blur(10px); z-index: -1; opacity: 0.3; }
+
+        /* Огромный жирный номер комнаты */
+        .cell-room { font-size: 1.5rem; font-weight: 900; line-height: 1; letter-spacing: -1px; text-shadow: 0 0 10px currentColor; }
+        .cell-num { font-size: 0.6rem; text-transform: uppercase; margin-bottom: 3px; color: rgba(255,255,255,0.5); }
+
+        /* Применяем цвета и свечение */
+        .cabana-cell[data-st="free"] { border-color: var(--st-free); color: var(--st-free); box-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+        .cabana-cell[data-st="booked"] { border-color: var(--st-booked); color: var(--st-booked); box-shadow: 0 0 10px rgba(255, 106, 0, 0.3); }
+        .cabana-cell[data-st="comp"] { border-color: var(--st-comp); color: var(--st-comp); box-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
+        .cabana-cell[data-st="event"] { border-color: var(--st-event); color: var(--st-event); box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); }
+        .cabana-cell[data-st="vip"] { border-color: var(--st-vip); color: var(--st-vip); box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
+        .cabana-cell:active { transform: scale(0.96); border-width: 3px; }
+
+        /* --- МОДАЛЬНЫЕ ОКНА (ГЛАССМОРФИЗМ) --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 4000; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; backdrop-filter: var(--blur);
+        }
+        .glass-card { 
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: 30px; 
+            border-radius: 25px; width: 100%; max-width: 360px; text-align: left; position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.37); -webkit-backdrop-filter: var(--blur);
+        }
+
+        /* LIVE FEED ЗАМЕТОК */
+        #staff-notes-list { margin-top: 20px; max-height: 250px; overflow-y: auto; }
+        .staff-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0; }
+        .staff-date { font-size: 0.7rem; color: var(--st-event); font-weight: bold; text-transform: uppercase;}
+
+        /* --- ПАНЕЛЬ АДМИНА (ВЫЕЗЖАЕТ СНИЗУ) --- */
+        .admin-panel {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--glass); border-top: 1px solid rgba(255,106,0,0.5);
+            z-index: 3000; padding: 25px; box-sizing: border-box; border-radius: 25px 25px 0 0;
+            backdrop-filter: var(--blur); -webkit-backdrop-filter: blur(30px);
+            box-shadow: 0 -10px 40px rgba(255,106,0,0.15);
+        }
+        .admin-input { width: 100%; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; font-size: 1rem; box-sizing: border-box;}
+        .admin-input:focus { border-color: var(--orange); outline: none; }
+
+        .color-selector { display: flex; justify-content: space-between; margin: 18px 0; }
+        .color-btn { width: 48px; height: 48px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; }
+        .color-btn.active { border-color: white; transform: scale(1.1); box-shadow: var(--neon-glow); }
+
+    </style>
+</head>
+<body>
+
+    <div id="hero-screen" class="hero">
+        <div class="lujo-logo">LUJO NEON EDGE</div>
+        <div class="booking-title">Booking by Gulzada</div>
+        <button class="btn-neon" onclick="showScreen('zones-screen')">Start Reservation</button>
+        <button class="btn-neon btn-secondary" onclick="openStaffNotes()">Staff Feed</button>
+        <div onclick="showModal('info-modal')" style="opacity: 0.4; font-size:0.7rem; margin-top:15px; text-transform:uppercase;">Legend</div>
+    </div>
+
+    <div id="zones-screen" class="hero" style="display:none; padding:15px; box-sizing:border-box;">
+        <h2 style="font-weight:200; font-size:1.5rem; letter-spacing:4px; margin-bottom:30px;">ZONES</h2>
+        <button class="btn-neon" onclick="openZone('Escape', 21)">Escape (21)</button>
+        <button class="btn-neon" onclick="openZone('Lotus', 8)">Lotus (8)</button>
+        <button class="btn-neon" onclick="openZone('Joy Stone', 18)">Joy Stone (18)</button>
+        <button onclick="showScreen('hero-screen')" style="background:none; border:none; color:rgba(255,255,255,0.5); margin-top:20px; font-size:0.8rem;">← HOME</button>
+    </div>
+
+    <div id="grid-screen" class="grid-screen">
+        <div class="grid-header">
+            <button onclick="showScreen('zones-screen')" style="background:none; border:none; color:rgba(255,255,255,0.7); font-size:1.5rem;">←</button>
+            <h2 id="zone-title" style="letter-spacing:4px; margin:0; font-size:1.2rem; text-transform:uppercase;"></h2>
+            <div style="width:30px;"></div>
+        </div>
+        <div id="cabana-grid" class="cabana-grid"></div>
+    </div>
+
+    <div id="staff-modal" class="modal">
+        <div class="glass-card">
+            <h2 style="margin-top:0; color:var(--st-event);">STAFF FEED</h2>
+            <textarea id="new-staff-note" class="admin-input" style="height:70px;" placeholder="Add new task for the team..."></textarea>
+            <button class="btn-neon" style="width:100%; margin:0;" onclick="addStaffNote()">Post Note</button>
+            <div id="staff-notes-list"></div>
+            <button onclick="closeModal('staff-modal')" style="width:100%; margin-top:20px; padding:12px; background:none; border:none; color:white;">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="admin-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 id="admin-title" style="margin:0; color:var(--orange); font-size:1.2rem; font-weight:200;">Edit</h3>
+            <div onclick="closeAdmin()" style="font-size:1.8rem; cursor:pointer;">×</div>
+        </div>
+        <input type="text" id="admin-room" class="admin-input" placeholder="Room Number (e.g. 2204)">
+        <div class="color-selector">
+            <button class="color-btn" id="btn-free" style="background: var(--st-free);" onclick="selectStatus('free')"></button>
+            <button class="color-btn" id="btn-booked" style="background: var(--st-booked);" onclick="selectStatus('booked')"></button>
+            <button class="color-btn" id="btn-comp" style="background: var(--st-comp);" onclick="selectStatus('comp')"></button>
+            <button class="color-btn" id="btn-event" style="background: var(--st-event);" onclick="selectStatus('event')"></button>
+            <button class="color-btn" id="btn-vip" style="background: var(--st-vip);" onclick="selectStatus('vip')"></button>
+        </div>
+        <button class="btn-neon" style="width:100%; margin:0;" onclick="saveChanges()">Apply Changes</button>
+    </div>
+
+    <div id="info-modal" class="modal">
+        <div class="glass-card">
+            <h2 style="color:var(--orange);">LEGEND</h2>
+            <div style="margin:10px 0;"><span style="color:var(--st-free); font-weight:bold;">Green</span> — Available</div>
+            <div style="margin:10px 0;"><span style="color:var(--st-booked); font-weight:bold;">Orange</span> — Booked</div>
+            <div style="margin:10px 0;"><span style="color:var(--st-comp); font-weight:bold;">Yellow</span> — Comp</div>
+            <div style="margin:10px 0;"><span style="color:var(--st-event); font-weight:bold;">Blue</span> — Event</div>
+            <div style="margin:10px 0;"><span style="color:var(--st-vip); font-weight:bold;">Purple</span> — Special</div>
+            <button onclick="closeModal('info-modal')" style="width:100%; margin-top:20px; padding:10px; border:none; background:var(--orange); color:white; border-radius:10px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lujo_neon_v1')) || {};
+        let staffNotes = JSON.parse(localStorage.getItem('lujo_staff_feed_v1')) || [];
+        let currentId = null;
+        let currentStatus = 'free';
+
+        function showScreen(id) {
+            document.querySelectorAll('body > div:not(.modal):not(.admin-panel)').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = (id === 'grid-screen' ? 'block' : 'flex');
+        }
+
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // --- КАБАНЫ ---
+        function openZone(name, count) {
+            showScreen('grid-screen');
+            document.getElementById('zone-title').innerText = name;
+            const grid = document.getElementById('cabana-grid');
+            grid.innerHTML = '';
+            for(let i=1; i<=count; i++) {
+                let id = name + i;
+                let data = db[id] || { room: 'FR', status: 'free' }; // Короткое FREE
+                grid.innerHTML += `
+                    <div class="cabana-cell" data-st="${data.status}" onclick="openAdmin('${id}', ${i}, '${name}')">
+                        <span class="cell-num">Cab #${i}</span>
+                        <span class="cell-room">${data.room}</span>
+                    </div>`;
+            }
+        }
+
+        function openAdmin(id, num, zone) {
+            currentId = id;
+            let data = db[id] || { room: '', status: 'free' };
+            document.getElementById('admin-title').innerText = `${zone} #${num}`;
+            document.getElementById('admin-room').value = (data.room === 'FR' ? '' : data.room);
+            selectStatus(data.status);
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+
+        function selectStatus(s) {
+            currentStatus = s;
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + s).classList.add('active');
+        }
+
+        function saveChanges() {
+            db[currentId] = {
+                room: document.getElementById('admin-room').value.toUpperCase() || 'FR',
+                status: currentStatus
+            };
+            localStorage.setItem('lujo_neon_v1', JSON.stringify(db));
+            document.getElementById('admin-panel').style.display = 'none';
+            openZone(currentId.replace(/[0-9]/g, ''), 0); // Refresh
+            location.reload(); // Hard refresh to apply styles
+        }
+
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+        // --- ЗАМЕТКИ ---
+        function openStaffNotes() { renderStaffNotes(); showModal('staff-modal'); }
+        function addStaffNote() {
+            const txt = document.getElementById('new-staff-note').value;
+            if(!txt) return;
+            const now = new Date();
+            const timeStr = now.getDate() + " " + now.toLocaleString('en', { month: 'short' }) + " | " + now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes();
+            staffNotes.unshift({ text: txt, date: timeStr });
+            localStorage.setItem('lujo_staff_feed_v1', JSON.stringify(staffNotes));
+            document.getElementById('new-staff-note').value = '';
+            renderStaffNotes();
+        }
+        function renderStaffNotes() {
+            const list = document.getElementById('staff-notes-list');
+            list.innerHTML = staffNotes.map(n => `
+                <div class="staff-item">
+                    <div class="staff-date">${n.date}</div>
+                    <div style="color:rgba(255,255,255,0.8);">${n.text}</div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

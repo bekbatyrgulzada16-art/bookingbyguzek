@@ -1,0 +1,97 @@
+<script>
+// Toggle Information Section
+function toggleInfo(){
+    const info = document.getElementById('info').querySelector('.content');
+    info.style.display = info.style.display === 'block' ? 'none' : 'block';
+}
+
+// Toggle other sections
+function toggle(id){
+    const el=document.getElementById(id);
+    el.style.display = el.style.display==='block'?'none':'block';
+}
+
+// Cabanas Data
+const cabanasData = [
+    {name:'Escape', count:21},
+    {name:'Lotus', count:8},
+    {name:'Joystone', count:18}
+];
+
+// Load or initialize
+let cabanas = JSON.parse(localStorage.getItem('cabanas')) || {};
+cabanasData.forEach(sec=>{
+    if(!cabanas[sec.name]){
+        cabanas[sec.name] = [];
+        for(let i=1;i<=sec.count;i++){
+            cabanas[sec.name].push({room:'', sold:'', status:'free', emoji:'', notes:''});
+        }
+    }
+});
+
+// Board
+document.getElementById('boardText').value = localStorage.getItem('board')||'';
+function saveBoard(){
+    localStorage.setItem('board',document.getElementById('boardText').value);
+    alert('Saved!');
+}
+
+// Render Cabanas
+const cabanaSections = document.getElementById('cabanaSections');
+cabanasData.forEach(sec=>{
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className='section';
+    sectionDiv.innerHTML = `<h2 onclick="toggle('${sec.name}')">🏝️ ${sec.name}</h2><div class="content" id="${sec.name}"><div class="grid"></div></div>`;
+    cabanaSections.appendChild(sectionDiv);
+    renderGrid(sec.name);
+});
+
+function renderGrid(secName){
+    const grid = document.getElementById(secName).querySelector('.grid');
+    grid.innerHTML='';
+    cabanas[secName].forEach((c,i)=>{
+        const cell = document.createElement('div');
+        cell.className='cell status-'+c.status;
+        cell.innerHTML=`<span class="emoji">${c.emoji}</span>${secName} ${i+1}<br>Room: ${c.room||'-'}<br>Sold by: ${c.sold||'-'}`;
+        cell.onclick=()=>openModal(secName,i);
+        grid.appendChild(cell);
+    });
+}
+
+// Modal
+let currentSec,currentIndex;
+function openModal(sec,i){
+    currentSec=sec; currentIndex=i;
+    const c=cabanas[sec][i];
+    document.getElementById('modalRoom').value=c.room;
+    document.getElementById('modalSold').value=c.sold;
+    document.getElementById('modalStatus').value=c.status;
+    document.getElementById('modalEmoji').value=c.emoji;
+    document.getElementById('modalNotes').value=c.notes;
+    document.getElementById('modal').style.display='flex';
+}
+
+function saveCell() {
+    // Save in local object
+    cabanas[currentSec][currentIndex] = {
+        room: document.getElementById('modalRoom').value,
+        sold: document.getElementById('modalSold').value,
+        status: document.getElementById('modalStatus').value,
+        emoji: document.getElementById('modalEmoji').value,
+        notes: document.getElementById('modalNotes').value
+    };
+
+    // Save to localStorage
+    localStorage.setItem('cabanas', JSON.stringify(cabanas));
+
+    // Rerender grid
+    renderGrid(currentSec);
+
+    // Close modal
+    document.getElementById('modal').style.display='none';
+}
+
+document.getElementById('modal').onclick=function(e){
+    if(e.target==this)this.style.display='none';
+}
+</script>
